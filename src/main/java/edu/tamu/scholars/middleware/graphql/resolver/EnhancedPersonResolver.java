@@ -9,8 +9,11 @@ import org.springframework.stereotype.Service;
 
 import edu.tamu.scholars.middleware.graphql.model.Document;
 import edu.tamu.scholars.middleware.graphql.model.Person;
+import edu.tamu.scholars.middleware.graphql.model.Relationship;
 import edu.tamu.scholars.middleware.graphql.service.DocumentService;
 import edu.tamu.scholars.middleware.graphql.service.PersonService;
+import edu.tamu.scholars.middleware.graphql.service.RelationshipService;
+
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import io.leangen.graphql.annotations.types.GraphQLType;
@@ -25,6 +28,9 @@ public class EnhancedPersonResolver {
 
     @Autowired
     private DocumentService documentService;
+
+    @Autowired
+    private RelationshipService relationshipService;
 
     @GraphQLQuery(name = "person")
     public EnhancedPerson getById(@GraphQLArgument(name = "id") String id) {
@@ -51,6 +57,11 @@ public class EnhancedPersonResolver {
 
         public List<Document> getSelectedPublications() {
             return documentService.findBySyncIds(this.getId()).stream().filter(document -> document.getAuthors().stream().anyMatch(author -> author.getId().equals(this.getId()))).collect(Collectors.toList());
+        }
+
+        public List<Relationship> getSelectedPositions() {
+            List<String> ids = this.getPositions().stream().map(pos -> pos.getId()).collect(Collectors.toList());
+            return relationshipService.findByIdIn(ids).stream().collect(Collectors.toList());
         }
 
     }
